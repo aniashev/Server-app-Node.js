@@ -24,12 +24,13 @@ userSchema.methods.isSubordinate = function(user) {
 userSchema.methods.addSubordinate = async function(user) {
     this.subordinates.push(user._id);
     await this.save();
+    return "The user is added to new boss's subordinates list";
 }
 
 userSchema.methods.removeSubordinate = async function(user) {
     this.subordinates.remove(user._id);
     await this.save();
-    return "YAY";
+    return "The user is removed from the old boss's subordinates list";
 }
 
 userSchema.methods.getAllSubordinates = async function() {

@@ -12,7 +12,7 @@ app.get('/health', async (req, resp) => {
     resp.status(200).json('{"heath": "HEALTHY!"}')
 })
 
-// 1.Register гser
+// 1.Register user
 app.post('/user', async (req, resp) => {
     try {
         let {username, password, admin, subordinates} = req.body;
@@ -20,7 +20,6 @@ app.post('/user', async (req, resp) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         await models.User.create({username: username, password: hashedPassword, admin: admin, subordinates: subordinates})
-        //here we need to check if subordinate id is valid and
         .then(result => {
             console.log('New user have been saved!');
             console.log(result);
@@ -35,7 +34,6 @@ app.post('/user', async (req, resp) => {
         resp.status(400).json({error: error.message});
     }
 })
-
 
 //2. Authenticate user
 app.post('/user/login', async (req, resp) => {
@@ -60,9 +58,7 @@ app.post('/user/login', async (req, resp) => {
             { expiresIn: "2h" }
         );
 
-        // user.token = token;
-
-        resp.status(200).json({token: token}); //should it be user or userId???
+        resp.status(200).json({token: token}); 
     }
     catch(error){
         resp.status(400).json({error: error.message});
@@ -109,7 +105,6 @@ app.get('/users', async (req, resp)=>{
 });
 
 
-
 //4.Change user's boss
   app.post('/user/change-boss', async (req, resp) => {
     try{
@@ -128,13 +123,14 @@ app.get('/users', async (req, resp)=>{
             if (!targetUser || !newBoss){
                 return resp.status(404).json({error: 'User not found!'});
             }
-            if (!user.isSubordinate(targetUser) || !user.isSubordinate(newBoss)) { ///if it is false it we can not perform the action = anauthorized
-                return resp.status(401).json({ error: "Unauthorized to update user" }); ////what is it?
+            if (!user.isSubordinate(targetUser) || !user.isSubordinate(newBoss)) { 
+                return resp.status(401).json({ error: "Unauthorized to update user" }); 
             }
-            else {  ///if it includes, that we can change the boss
-                let result = await newBoss.addSubordinate(targetUser);
-                let resultYAY = await user.removeSubordinate(targetUser);
-                console.log(resultYAY);
+            else {  
+                let result1 = await newBoss.addSubordinate(targetUser);
+                console.log(result1);
+                let result2 = await user.removeSubordinate(targetUser);
+                console.log(result2);
                 return resp.status(200).json({});
             }
         } catch (error) {
@@ -144,25 +140,6 @@ app.get('/users', async (req, resp)=>{
         resp.status(400).json({ error: error.message });
     }
 })
-    
-
-
-
-// function isSubordinate(boss, user){
-//     return boss.subordinates.includes(user._id);
-//     // if(!boss){
-//     //     resp.status(404).json({error: 'User not found'});
-//     // }
-//     // else if(boss.subordinates.length === 0){
-//     //     return resp.status(401).json({error: 'This user doesn not have any subordinates' })
-//     // } 
-//     // else{
-//     //     const bossSubordinates = await boss.getAllSubordinates();
-//     //     return bossSubordinates.includes(subordinate._id.toString());
-//     // }
-// }
-
-
 
 app.listen(3000, () =>{
     console.log('Listening 3000...')
